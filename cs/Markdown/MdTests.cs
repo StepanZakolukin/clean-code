@@ -19,8 +19,7 @@ internal class MdTests
     {
         var lambda = () => md.Render(string.Empty);
 
-        lambda.Should()
-            .NotThrow();
+        lambda.Should().NotThrow();
     }
 
     [TestCase("_12_3", "_12_3")]

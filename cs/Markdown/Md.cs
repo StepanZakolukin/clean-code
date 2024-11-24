@@ -4,36 +4,38 @@ internal class Md
 {
     public string Render(string markdown)
     {
-        throw new NotImplementedException();
+        return markdown.PerformTextFormatting(GetFragmentToFormatInHeading, ToFormatFragmentIntoHeader)
+            .PerformTextFormatting(GetFragmentToFormatInItalics, ToFormatFragmentInItalics)
+            .PerformTextFormatting(GetFragmentToFormatInSemiBold, ToFormatFragmentIntoSemiBold);
     }
 
-    public string ToHtml(string markdown)
+    private PortionText GetFragmentToFormatInHeading(string text, int startIndex)
     {
         throw new NotImplementedException();
     }
 
-    public static bool Check(string str)
+    private PortionText GetFragmentToFormatInItalics(string text, int startIndex)
     {
-        var stack = new Stack<char>();
-        char openBracket;
-        var dict = new Dictionary<char, char>
-        {
-            ['('] = ')',
-            ['['] = ']'
-        };
+        throw new NotImplementedException();
+    }
 
-        foreach (var symbol in str)
-        {
-            if (dict.ContainsKey(symbol))
-                stack.Push(symbol);
-            else if (dict.ContainsValue(symbol))
-            {
-                if (stack.Count == 0) return false;
-                openBracket = stack.Pop();
-                if (dict[openBracket] != symbol) return false;
-            }
-            else return false;
-        }
-        return stack.Count == 0;
+    private PortionText GetFragmentToFormatInSemiBold(string text, int startIndex)
+    {
+        throw new NotImplementedException();
+    }
+
+    private string ToFormatFragmentIntoHeader(string fragment)
+    {
+        throw new NotImplementedException();
+    }
+
+    private string ToFormatFragmentInItalics(string fragment)
+    {
+        throw new NotImplementedException();
+    }
+
+    private string ToFormatFragmentIntoSemiBold(string fragment)
+    {
+        throw new NotImplementedException();
     }
 }

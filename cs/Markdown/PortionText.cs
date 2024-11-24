@@ -1,12 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Markdown;
 
-namespace Markdown
+internal class PortionText
 {
-    internal class PortionText
+    public readonly int StartIndex;
+    public readonly int Length;
+
+    public PortionText(int startIndex, int length)
     {
+        if (startIndex < 0)
+            throw new ArgumentException("startIndex не может быть отрицательным");
+        if (length < 0)
+            throw new ArgumentException("length не может быть отрицательной");
+
+        Length = length;
+        StartIndex = startIndex;
     }
 }
