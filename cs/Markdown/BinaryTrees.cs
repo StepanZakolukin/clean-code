@@ -16,13 +16,13 @@ public class BinaryTree<T> : IEnumerable<T>
         {
             if (key.CompareTo(currentSubtree.Value) >= 0)
             {
-                currentSubtree.HeightOfTheRight++;
+                currentSubtree.HeightOfRight++;
                 if (currentSubtree.Right == null) { currentSubtree.Right = new TreeNode(key, currentSubtree); return; }
                 else currentSubtree = currentSubtree.Right;
             }
             else
             {
-                currentSubtree.HeightOfTheLeft++;
+                currentSubtree.HeightOfLeft++;
                 if (currentSubtree.Left == null) { currentSubtree.Left = new TreeNode(key, currentSubtree); return; }
                 else currentSubtree = currentSubtree.Left;
             }
@@ -50,7 +50,7 @@ public class BinaryTree<T> : IEnumerable<T>
     {
         get
         {
-            if (Root.HeightOfTheRight + Root.HeightOfTheLeft < i || i < 0)
+            if (Root.HeightOfRight + Root.HeightOfLeft < i || i < 0)
                 throw new IndexOutOfRangeException();
 
             var currentSubtree = Root;
@@ -58,12 +58,12 @@ public class BinaryTree<T> : IEnumerable<T>
 
             while (true)
             {
-                if (currentSubtree.HeightOfTheLeft + index == i) return currentSubtree.Value;
-                else if (currentSubtree.HeightOfTheLeft + index > i)
+                if (currentSubtree.HeightOfLeft + index == i) return currentSubtree.Value;
+                else if (currentSubtree.HeightOfLeft + index > i)
                     currentSubtree = currentSubtree.Left;
-                else if (currentSubtree.HeightOfTheLeft < i)
+                else if (currentSubtree.HeightOfLeft < i)
                 {
-                    index += currentSubtree.HeightOfTheLeft + 1;
+                    index += currentSubtree.HeightOfLeft + 1;
                     currentSubtree = currentSubtree.Right;
                 }
             }
@@ -86,8 +86,8 @@ public class BinaryTree<T> : IEnumerable<T>
     public class TreeNode : IEnumerable<TreeNode>
     {
         public T Value;
-        public int HeightOfTheLeft { get; set; }
-        public int HeightOfTheRight { get; set; }
+        public int HeightOfLeft { get; set; }
+        public int HeightOfRight { get; set; }
 
         public TreeNode Left, Right, Ancestor;
 
