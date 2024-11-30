@@ -23,7 +23,7 @@ internal class Md
             "__", "<strong>"));
         
         result.Add(new SingleReplacementTagSpecification([],
-            "#", "<h1>"));
+            "# ", "<h1>"));
         
         return result;
     }

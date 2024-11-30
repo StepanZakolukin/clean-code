@@ -83,7 +83,7 @@ internal class MdTests
         actual.Should().Be(expected);
     }
 
-    [TestCase("#Заголовок\n\r текст", "<h1>Заголовок</h1> текст")]
+    [TestCase("# Заголовок\n\r текст", "<h1>Заголовок</h1> текст")]
     public void Render_Heading_TurnsIntoTagH1(string markdown, string expected)
     {
         var actual = md.Render(markdown);
@@ -91,7 +91,7 @@ internal class MdTests
         actual.Should().Be(expected);
     }
 
-    [TestCase("Заголовок __с _разными_ символами__", "<h1>Заголовок <strong>с <em>разными</em> символами</strong></h1>")]
+    [TestCase("# Заголовок __с _разными_ символами__\n\r", "<h1>Заголовок <strong>с <em>разными</em> символами</strong></h1>")]
     public void Render_HeadingWithDifferentKeyCharacters(string markdown, string expected)
     {
         var actual = md.Render(markdown);
