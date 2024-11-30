@@ -37,18 +37,18 @@ internal class Md
         {
             var tagLength = tagSpecific.InputOpeningTag.Length;
             var index = 0;
-            var openingTag = true;
+            var lookingForOpenTag = true;
 
             for (var i = 0; i < text.Length - tagLength; i++)
             {
                 var currentSubstring = text.Substring(i, tagLength + 1);
                 
-                if (openingTag && currentSubstring[0] != '\\' && currentSubstring.EndsWith(tagSpecific.InputOpeningTag))
+                if (lookingForOpenTag && currentSubstring[0] != '\\' && currentSubstring.EndsWith(tagSpecific.InputOpeningTag))
                 {
                     index = i;
-                    openingTag = false;
+                    lookingForOpenTag = false;
                 }
-                else if (!openingTag && currentSubstring[0] != '\\' && currentSubstring.EndsWith(tagSpecific.InputClosingTag))
+                else if (!lookingForOpenTag && currentSubstring[0] != '\\' && currentSubstring.EndsWith(tagSpecific.InputClosingTag))
                 {
                     var length = i + tagLength - index;
 
@@ -58,18 +58,12 @@ internal class Md
                             index,
                             length, tagSpecific);
                     }
-                    openingTag = true;
+                    lookingForOpenTag = true;
                 }
                 else
                 {
-                    foreach (var invalisSubstring in tagSpecific.InvalidSubstringsInMarkup)
-                    {
-                        if (currentSubstring.EndsWith(invalisSubstring))
-                        {
-                            openingTag = true;
-                            break;
-                        }
-                    }
+                    lookingForOpenTag = tagSpecific.InvalidSubstringsInMarkup.Any(str => currentSubstring.EndsWith(str)) ||
+                                 lookingForOpenTag;
                 }
             }
         }
