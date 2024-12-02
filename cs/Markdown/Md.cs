@@ -4,34 +4,20 @@ namespace Markdown;
 
 internal class Md
 {
+    private readonly ISpecificationProvider specificationProvider;
+    public Md(ISpecificationProvider specificationProvider)
+    {
+        this.specificationProvider = specificationProvider;
+    }
+    
     public string Render(string markdown)
     {
-        var markupSpecification = GetMarkupSpecification().ToArray();
-        
-        return RemoveEscapingOfControlSubstrings(PerformTextFormatting(markdown,
-            FindAllSubstringsForFormatting(markdown, markupSpecification)), markupSpecification);
-    }
+        var markupSpecification = specificationProvider.GetMarkupSpecification().ToArray();
 
-    private IEnumerable<TagReplacementSpecification> GetMarkupSpecification()
-    {
-        var result = new List<TagReplacementSpecification>();
-        
-        var invalidSubstring = new List<string> { "__" };
-        for (var digit = 1; digit < 10; digit++)
-            invalidSubstring.Add(digit.ToString());
-        result.Add(new TagReplacementSpecification(
-            invalidSubstring,
-            "_", "<em>",
-            null, null,
-            ["_ "], [ " _", "__" ]));
-        
-        result.Add(new TagReplacementSpecification([],
-            "__", "<strong>"));
-        
-        result.Add(new SingleReplacementTagSpecification([],
-            "# ", "<h1>"));
-        
-        return result;
+        var fragments = FindAllSubstringsForFormatting(markdown, markupSpecification);
+        var renderedString = PerformTextFormatting(markdown, fragments);
+
+        return RemoveEscapingOfControlSubstrings(renderedString, markupSpecification);
     }
 
     private IEnumerable<TextFragment> FindAllSubstringsForFormatting(string text,
@@ -51,24 +37,24 @@ internal class Md
         text = ".." + text;
         var lookingForOpenTag = true;
 
-        for (var i = 0; i < text.Length - tagSpecific.InputOpeningTag.Length - 1; i++)
+        for (var i = 0; i < text.Length - tagSpecific.InputTag.Opening.Length - 1; i++)
         {
-            var currentSubstring = text.Substring(i, tagSpecific.InputOpeningTag.Length + 2);
+            var currentSubstring = text.Substring(i, tagSpecific.InputTag.Opening.Length + 2);
                 
-            if (lookingForOpenTag && currentSubstring.EndsWith(tagSpecific.InputOpeningTag) &&
-                i + tagSpecific.InputOpeningTag.Length + 3 < text.Length &&
-                tagSpecific.CheckOpeningTag(text.Substring(i, tagSpecific.InputOpeningTag.Length + 3)))
+            if (lookingForOpenTag && currentSubstring.EndsWith(tagSpecific.InputTag.Opening) &&
+                i + tagSpecific.InputTag.Opening.Length + 3 < text.Length &&
+                tagSpecific.CheckOpeningTag(text.Substring(i, tagSpecific.InputTag.Opening.Length + 3)))
             {
                 index = i;
                 lookingForOpenTag = false;
             }
-            else if (!lookingForOpenTag && currentSubstring.EndsWith(tagSpecific.InputClosingTag) &&
+            else if (!lookingForOpenTag && currentSubstring.EndsWith(tagSpecific.InputTag.Opening) &&
                      tagSpecific.CheckClosingTag(currentSubstring))
             {
                 lookingForOpenTag = true;
-                var length = i + tagSpecific.InputOpeningTag.Length - index;
+                var length = i + tagSpecific.InputTag.Opening.Length - index;
 
-                if (length > 2 * tagSpecific.InputOpeningTag.Length)
+                if (length > 2 * tagSpecific.InputTag.Opening.Length)
                     yield return new TextFragment(index, length, tagSpecific);
             }
             else
@@ -106,13 +92,13 @@ internal class Md
         foreach (var fragment in fragments)
         {
             result.Add(new TagReplacementOptions(
-                fragment.Specification.InputOpeningTag,
-                fragment.Specification.OutputOpeningTag,
+                fragment.Specification.InputTag.Opening,
+                fragment.Specification.OutputTag.Opening,
                 fragment.StartIndex));
             result.Add(new TagReplacementOptions(
-                fragment.Specification.InputClosingTag,
-                fragment.Specification.OutputClosingTag,
-                fragment.StartIndex + fragment.Length - fragment.Specification.InputClosingTag.Length));
+                fragment.Specification.InputTag.Closing,
+                fragment.Specification.OutputTag.Closing,
+                fragment.StartIndex + fragment.Length - fragment.Specification.InputTag.Closing.Length));
         }
 
         return result;
@@ -122,9 +108,9 @@ internal class Md
     {
         foreach (var tag in tags)
         {
-            text = text.Replace('\\' + tag.InputOpeningTag, tag.InputClosingTag);
-            if (tag.InputClosingTag != tag.InputOpeningTag)
-                text = text.Replace('\\' + tag.InputClosingTag, tag.InputClosingTag);
+            text = text.Replace('\\' + tag.InputTag.Opening, tag.InputTag.Closing);
+            if (tag.InputTag.Closing != tag.InputTag.Opening)
+                text = text.Replace('\\' + tag.InputTag.Closing, tag.InputTag.Closing);
         }
         
         return text.Replace(@"\\", "\\");;

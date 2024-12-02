@@ -11,7 +11,7 @@ internal class MdTests
     [SetUp]
     public void InitializeFild()
     {
-        md = new Md();
+        md = new Md(new MdToHtmlSpecificationBuilder());
     }
 
     [Test]
@@ -83,18 +83,19 @@ internal class MdTests
         actual.Should().Be(expected);
     }
 
-    [TestCase("# Заголовок\n\r текст", "<h1>Заголовок</h1> текст")]
-    public void Render_Heading_TurnsIntoTagH1(string markdown, string expected)
+    [Test]
+    public void Render_Heading_TurnsIntoTagH1()
     {
-        var actual = md.Render(markdown);
+        var actual = md.Render($"# Заголовок{Environment.NewLine} текст");
         
-        actual.Should().Be(expected);
+        actual.Should().Be("<h1>Заголовок</h1> текст");
     }
 
-    [TestCase("# Заголовок __с _разными_ символами__\n\r", "<h1>Заголовок <strong>с <em>разными</em> символами</strong></h1>")]
-    public void Render_HeadingWithDifferentKeyCharacters(string markdown, string expected)
+    [Test]
+    public void Render_HeadingWithDifferentKeyCharacters()
     {
-        var actual = md.Render(markdown);
+        var expected = "<h1>Заголовок <strong>с <em>разными</em> символами</strong></h1>";
+        var actual = md.Render($"# Заголовок __с _разными_ символами__{Environment.NewLine}");
         
         actual.Should().Be(expected);
     }
