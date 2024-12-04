@@ -1,6 +1,6 @@
 using Markdown.Tags;
 
-namespace Markdown;
+namespace Markdown.MarkupSpecification;
 
 public interface ISpecificationProvider
 {

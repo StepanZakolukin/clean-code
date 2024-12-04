@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Markdown.MarkupSpecification;
 
 namespace Markdown;
 

@@ -2,12 +2,12 @@ namespace Markdown.Tags;
 
 public interface IMarkupTag
 {
-    public Tag InputTag { get; }
-    public Tag OutputTag { get; }
+    public Tag Opening { get; init; }
+    public Tag Closing { get; init; }
     
     public bool DidConflict(IMarkupTag tag);
     
-    public IMarkupTag FindNextTag(string text, int startIndex);
+    public TextFragment FindNextPairOfTags(string text, int startIndex);
 
-    public string PerformTagFormatting(string text, IMarkupTag currentTag, IMarkupTag nextTag);
+    public string PerformTagFormatting(TagReplacementSpecification replacement, IMarkupTag previousTag, IMarkupTag nextTag);
 }

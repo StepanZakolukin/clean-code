@@ -1,20 +1,5 @@
-﻿namespace Markdown;
+using Markdown.Tags;
 
-internal class TextFragment
-{
-    public readonly int StartIndex;
-    public readonly int Length;
-    public readonly TagReplacementSpecification Specification;
+namespace Markdown;
 
-    public TextFragment(int startIndex, int length, TagReplacementSpecification specification)
-    {
-        if (startIndex < 0)
-            throw new ArgumentException($"{nameof(startIndex)} не может быть отрицательным");
-        if (length < 0)
-            throw new ArgumentException($"{nameof(length)} не может быть отрицательной");
-
-        Length = length;
-        StartIndex = startIndex;
-        Specification = specification ?? throw new ArgumentNullException(nameof(specification));
-    }
-}
+public record class TextFragment(TagReplacementSpecification OpeningTag, TagReplacementSpecification ClosingTag);

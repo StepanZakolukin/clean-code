@@ -1,10 +1,13 @@
 ﻿using System.Text;
+using Markdown.MarkupSpecification;
+using Markdown.Tags;
 
 namespace Markdown;
 
 public class Md
 {
     private readonly ISpecificationProvider specificationProvider;
+    
     public Md(ISpecificationProvider specificationProvider)
     {
         this.specificationProvider = specificationProvider;
@@ -14,69 +17,87 @@ public class Md
     {
         var markupSpecification = specificationProvider.GetMarkupSpecification().ToArray();
 
-        var fragments = FindAllSubstringsForFormatting(markdown, markupSpecification);
-        var renderedString = PerformTextFormatting(markdown, fragments);
+        var tagReplacements = FindAllTags(markdown, markupSpecification);
+        var renderedString = PerformTextFormatting(markdown, tagReplacements.ToArray());
 
         return RemoveEscapingOfControlSubstrings(renderedString, markupSpecification);
     }
 
-    private IEnumerable<TextFragment> FindAllSubstringsForFormatting(string text,
-        IEnumerable<TagReplacementSpecification> markupSpecification)
+    private IEnumerable<TagReplacementSpecification> FindAllTags(string text, IMarkupTag[] markupSpecification)
     {
-        foreach (var tagSpecific in markupSpecification)
+        var result = new List<TagReplacementSpecification>();
+        
+        foreach (var tagSpecification in markupSpecification)
         {
-            foreach (var fragment in FindAllFragmentsHighlightedByTag(tagSpecific, text))
-                yield return fragment;
+            var fragment = tagSpecification.FindNextPairOfTags(text, 0);
+            
+            while (fragment is not null)
+            {
+                if (fragment.OpeningTag.StartIndex > fragment.ClosingTag.StartIndex)
+                    throw new Exception("Открывающийся тег должен находиться перед закрывающимся");
+                
+                result.Add(fragment.OpeningTag);
+                result.Add(fragment.ClosingTag);
+                
+                if (fragment.ClosingTag.StartIndex + 1 >= text.Length) break;
+                
+                fragment = tagSpecification.FindNextPairOfTags(text, fragment.ClosingTag.StartIndex + 1);
+            }
         }
+
+        return EliminateTagConflictsAndIntersections(result.ToArray());
     }
 
-    private IEnumerable<TextFragment> FindAllFragmentsHighlightedByTag(
-        TagReplacementSpecification tagSpecific, string text)
+    private BinaryTree<TagReplacementSpecification> EliminateTagConflictsAndIntersections(
+        TagReplacementSpecification[] tags)
     {
-        var index = 0;
-        text = ".." + text;
-        var lookingForOpenTag = true;
+        var stack = new Stack<TagReplacementSpecification>();
+        TagReplacementSpecification openingTag = null;
+        var binaryTree = new BinaryTree<TagReplacementSpecification>();
 
-        for (var i = 0; i < text.Length - tagSpecific.InputTag.Opening.Length - 1; i++)
+        for (var i = 0; i < tags.Length; i++)
         {
-            var currentSubstring = text.Substring(i, tagSpecific.InputTag.Opening.Length + 2);
-                
-            if (lookingForOpenTag && currentSubstring.EndsWith(tagSpecific.InputTag.Opening) &&
-                i + tagSpecific.InputTag.Opening.Length + 3 < text.Length &&
-                tagSpecific.CheckOpeningTag(text.Substring(i, tagSpecific.InputTag.Opening.Length + 3)))
+            if (openingTag.Markup.Closing == tags[i].Tag)
             {
-                index = i;
-                lookingForOpenTag = false;
+                binaryTree.Add(openingTag);
+                binaryTree.Add(tags[i]);
+                openingTag = stack.Count != 0 ? stack.Pop() : null;
             }
-            else if (!lookingForOpenTag && currentSubstring.EndsWith(tagSpecific.InputTag.Opening) &&
-                     tagSpecific.CheckClosingTag(currentSubstring))
+            else if (tags[i].Tag == tags[i].Markup.Opening)
             {
-                lookingForOpenTag = true;
-                var length = i + tagSpecific.InputTag.Opening.Length - index;
-
-                if (length > 2 * tagSpecific.InputTag.Opening.Length)
-                    yield return new TextFragment(index, length, tagSpecific);
-            }
-            else
-            {
-                lookingForOpenTag = tagSpecific.InvalidSubstringsInMarkup
-                                        .Any(currentSubstring.EndsWith) || lookingForOpenTag;
+                if ((openingTag is not null || !openingTag.Markup.DidConflict(tags[i].Markup)) &&
+                    !stack.Any(specification => specification.Markup.DidConflict(tags[i].Markup)))
+                {
+                    if (openingTag is not null) stack.Push(openingTag);
+                    openingTag = tags[i];
+                }
+                /*if (stack.Any(specification => specification.Markup.Opening == openingTag.Tag))
+                {
+                    openingTag = stack.Pop();
+                    while(openingTag != tags[i])
+                        openingTag = stack.Pop();
+                }*/
             }
         }
+        
+        return binaryTree;
     }
     
-    private string PerformTextFormatting(string text, IEnumerable<TextFragment> fragments)
+    private string PerformTextFormatting(string text, TagReplacementSpecification[] replacements)
     {
-        if (!fragments.Any()) return text;
+        if (replacements.Length == 0) return text;
 
         var result = new StringBuilder();
         var endOfLastReplacement = -1;
-        
-        foreach (var replacementOptions in GetSortedCollectionTags(fragments))
+
+        for (var i = 0; i < replacements.Length; i++)
         {
-            result.Append(text[(endOfLastReplacement + 1)..replacementOptions.StartIndex]);
-            result.Append(replacementOptions.NewTag);
-            endOfLastReplacement = replacementOptions.StartIndex + replacementOptions.OldTag.Length - 1;
+            result.Append(text[(endOfLastReplacement + 1)..replacements[i].StartIndex]);
+            result.Append(replacements[i].Markup.PerformTagFormatting(
+                replacements[i],
+                i != 0 ? replacements[i - 1].Markup : null,
+                i < replacements.Length ? replacements[i + 1].Markup : null));
+            endOfLastReplacement = replacements[i].StartIndex + replacements[i].Tag.Old.Length - 1;
         }
         
         if (endOfLastReplacement + 1 != text.Length)
@@ -84,33 +105,14 @@ public class Md
         
         return result.ToString();
     }
-
-    private BinaryTree<TagReplacementOptions> GetSortedCollectionTags(IEnumerable<TextFragment> fragments)
-    {
-        var result = new BinaryTree<TagReplacementOptions>();
-        
-        foreach (var fragment in fragments)
-        {
-            result.Add(new TagReplacementOptions(
-                fragment.Specification.InputTag.Opening,
-                fragment.Specification.OutputTag.Opening,
-                fragment.StartIndex));
-            result.Add(new TagReplacementOptions(
-                fragment.Specification.InputTag.Closing,
-                fragment.Specification.OutputTag.Closing,
-                fragment.StartIndex + fragment.Length - fragment.Specification.InputTag.Closing.Length));
-        }
-
-        return result;
-    }
     
-    private string RemoveEscapingOfControlSubstrings(string text, IEnumerable<TagReplacementSpecification> tags)
+    private string RemoveEscapingOfControlSubstrings(string text, IEnumerable<IMarkupTag> tags)
     {
         foreach (var tag in tags)
         {
-            text = text.Replace('\\' + tag.InputTag.Opening, tag.InputTag.Closing);
-            if (tag.InputTag.Closing != tag.InputTag.Opening)
-                text = text.Replace('\\' + tag.InputTag.Closing, tag.InputTag.Closing);
+            text = text.Replace('\\' + tag.Opening.Old, tag.Opening.Old);
+            if (tag.Closing.Old != tag.Opening.Old)
+                text = text.Replace('\\' + tag.Closing.Old, tag.Closing.Old);
         }
         
         return text.Replace(@"\\", "\\");;

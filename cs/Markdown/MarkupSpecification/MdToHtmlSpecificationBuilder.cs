@@ -1,6 +1,7 @@
 using Markdown.Tags;
+using Markdown.Tags.TagSpecification;
 
-namespace Markdown;
+namespace Markdown.MarkupSpecification;
 
 public class MdToHtmlSpecificationBuilder : ISpecificationProvider
 {
