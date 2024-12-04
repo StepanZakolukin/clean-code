@@ -5,14 +5,14 @@ namespace Markdown.MarkupSpecification;
 
 public class MdToHtmlSpecificationBuilder : ISpecificationProvider
 {
-    public IEnumerable<IMarkupTag> GetMarkupSpecification()
+    public IEnumerable<BaseTag> GetMarkupSpecification()
     {
         return
         [
             new BoldTag(),
-            new HeaderTag(),
+            /*new HeaderTag(),*/
             new ItalicsTag(),
-            new BulletedListTag()
+            /*new BulletedListTag()*/
         ];
     }
 }

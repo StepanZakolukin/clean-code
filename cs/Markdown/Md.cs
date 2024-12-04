@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Markdown.MarkupSpecification;
 using Markdown.Tags;
+using Markdown.Tags.TagSpecification;
 
 namespace Markdown;
 
@@ -23,13 +24,13 @@ public class Md
         return RemoveEscapingOfControlSubstrings(renderedString, markupSpecification);
     }
 
-    private IEnumerable<TagReplacementSpecification> FindAllTags(string text, IMarkupTag[] markupSpecification)
+    private IEnumerable<TagReplacementSpecification> FindAllTags(string text, BaseTag[] markupSpecification)
     {
-        var result = new List<TagReplacementSpecification>();
+        var result = new BinaryTree<TagReplacementSpecification>();
         
         foreach (var tagSpecification in markupSpecification)
         {
-            var fragment = tagSpecification.FindNextPairOfTags(text, 0);
+            var fragment = tagSpecification.FindNextPairOfTags(text, 0, tagSpecification);
             
             while (fragment is not null)
             {
@@ -41,23 +42,24 @@ public class Md
                 
                 if (fragment.ClosingTag.StartIndex + 1 >= text.Length) break;
                 
-                fragment = tagSpecification.FindNextPairOfTags(text, fragment.ClosingTag.StartIndex + 1);
+                fragment = tagSpecification.FindNextPairOfTags(text, fragment.ClosingTag.StartIndex + 1, tagSpecification);
             }
         }
 
-        return EliminateTagConflictsAndIntersections(result.ToArray());
+        return EliminateTagConflictsAndIntersections(result);
     }
 
     private BinaryTree<TagReplacementSpecification> EliminateTagConflictsAndIntersections(
-        TagReplacementSpecification[] tags)
+        BinaryTree<TagReplacementSpecification> tags)
     {
         var stack = new Stack<TagReplacementSpecification>();
         TagReplacementSpecification openingTag = null;
         var binaryTree = new BinaryTree<TagReplacementSpecification>();
+        var len = tags.Count();
 
-        for (var i = 0; i < tags.Length; i++)
+        for (var i = 0; i < len; i++)
         {
-            if (openingTag.Markup.Closing == tags[i].Tag)
+            if (openingTag is not null && openingTag.Markup.Closing == tags[i].Tag)
             {
                 binaryTree.Add(openingTag);
                 binaryTree.Add(tags[i]);
@@ -65,18 +67,18 @@ public class Md
             }
             else if (tags[i].Tag == tags[i].Markup.Opening)
             {
-                if ((openingTag is not null || !openingTag.Markup.DidConflict(tags[i].Markup)) &&
+                if ((openingTag is null || !openingTag.Markup.DidConflict(tags[i].Markup)) &&
                     !stack.Any(specification => specification.Markup.DidConflict(tags[i].Markup)))
                 {
                     if (openingTag is not null) stack.Push(openingTag);
                     openingTag = tags[i];
                 }
-                /*if (stack.Any(specification => specification.Markup.Opening == openingTag.Tag))
-                {
+            }
+            if (stack.Any(specification => specification.Markup == tags[i].Markup))
+            {
+                openingTag = stack.Pop();
+                while(openingTag.Markup != tags[i].Markup)
                     openingTag = stack.Pop();
-                    while(openingTag != tags[i])
-                        openingTag = stack.Pop();
-                }*/
             }
         }
         
@@ -96,7 +98,7 @@ public class Md
             result.Append(replacements[i].Markup.PerformTagFormatting(
                 replacements[i],
                 i != 0 ? replacements[i - 1].Markup : null,
-                i < replacements.Length ? replacements[i + 1].Markup : null));
+                i < replacements.Length - 1 ? replacements[i + 1].Markup : null));
             endOfLastReplacement = replacements[i].StartIndex + replacements[i].Tag.Old.Length - 1;
         }
         
@@ -106,7 +108,7 @@ public class Md
         return result.ToString();
     }
     
-    private string RemoveEscapingOfControlSubstrings(string text, IEnumerable<IMarkupTag> tags)
+    private string RemoveEscapingOfControlSubstrings(string text, IEnumerable<BaseTag> tags)
     {
         foreach (var tag in tags)
         {

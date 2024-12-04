@@ -1,8 +1,9 @@
 using Markdown.Tags;
+using Markdown.Tags.TagSpecification;
 
 namespace Markdown.MarkupSpecification;
 
 public interface ISpecificationProvider
 {
-    public IEnumerable<IMarkupTag> GetMarkupSpecification();
+    public IEnumerable<BaseTag> GetMarkupSpecification();
 }

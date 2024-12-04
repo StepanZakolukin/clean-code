@@ -1,12 +1,14 @@
+using Markdown.Tags.TagSpecification;
+
 namespace Markdown.Tags;
 
 public class TagReplacementSpecification : IComparable
 {
-    public required Tag Tag { get; init; }
-    public required int StartIndex { get; init; }
-    public required IMarkupTag Markup { get; init; }
+    public Tag Tag { get; init; }
+    public int StartIndex { get; init; }
+    public BaseTag Markup { get; init; }
 
-    public TagReplacementSpecification(Tag tag, IMarkupTag markup, int startIndex)
+    public TagReplacementSpecification(Tag tag, BaseTag markup, int startIndex)
     {
         Tag = tag;
         StartIndex = startIndex;
