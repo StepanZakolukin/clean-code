@@ -10,7 +10,7 @@ public class MdToHtmlSpecificationBuilder : ISpecificationProvider
         return
         [
             new BoldTag(),
-            /*new HeaderTag(),*/
+            new HeaderTag(),
             new ItalicsTag(),
             /*new BulletedListTag()*/
         ];

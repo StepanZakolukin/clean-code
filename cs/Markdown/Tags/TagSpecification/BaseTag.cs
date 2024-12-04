@@ -29,8 +29,11 @@ public abstract class BaseTag(Tag opening, Tag closing)
         for (var i = startIndex; i <= text.Length - tag.Old.Length; i++)
         {
             if (text[i] == '\\') numberOfEscapeCharacters++;
-            else if (numberOfEscapeCharacters % 2 == 0 && text.Substring(i, tag.Old.Length) == tag.Old)
+            else if (numberOfEscapeCharacters % 2 == 0 && text.Substring(i, tag.Old.Length) == tag.Old &&
+                     AdditionallyCheckCurrentPosition(text, i, tag))
+            {
                 return new TagReplacementSpecification(tag, tagSpecification, i);
+            }
             else numberOfEscapeCharacters = 0;
         }
 
@@ -42,4 +45,6 @@ public abstract class BaseTag(Tag opening, Tag closing)
     {
         return replacement.Tag == Opening ? Opening.New : Closing.New;
     }
+
+    protected virtual bool AdditionallyCheckCurrentPosition(string text, int currentIndex, Tag tag) => true;
 }

@@ -38,29 +38,12 @@ public class ItalicsTag : BaseTag
         return FindNextPairOfTags(text, pair.ClosingTag.StartIndex, tagSpecification);
     }
 
-    protected override TagReplacementSpecification FindNextTag(string text, int startIndex, Tag tag, BaseTag tagSpecification)
+    protected override bool AdditionallyCheckCurrentPosition(string text, int currentIndex, Tag tag)
     {
-        var numberOfEscapeCharacters = 0;
+        var index = Math.Max(currentIndex - 1, 0);
+        var substring = text.Substring(index, Math.Min(currentIndex + tag.Old.Length, text.Length - 1) - index + 1);
 
-        for (var i = startIndex; i <= text.Length - tag.Old.Length; i++)
-        {
-            if (text[i] == '\\') numberOfEscapeCharacters++;
-            else if (numberOfEscapeCharacters % 2 == 0 && text.Substring(i, tag.Old.Length) == tag.Old)
-            {
-                var index = Math.Max(i - 1, 0);
-                var substring = text.Substring(index, Math.Min(i + tag.Old.Length, text.Length - 1) - index + 1);
-
-                if (!forbiddenSubstrings.Any(s => substring.StartsWith(s) || substring.EndsWith(s)) &&
-                    (tag == Opening && substring[^1] != ' ' || tag == Closing && substring[0] != ' '))
-                {
-                    return new TagReplacementSpecification(tag, this, i);
-                }
-                
-                numberOfEscapeCharacters = 0;
-            }
-            else numberOfEscapeCharacters = 0;
-        }
-
-        return null;
+        return !forbiddenSubstrings.Any(s => substring.StartsWith(s) || substring.EndsWith(s)) &&
+               (tag == Opening && substring[^1] != ' ' || tag == Closing && substring[0] != ' ');
     }
 }
