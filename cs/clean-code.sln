@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples", "Samples\Samples.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Markdown", "Markdown\Markdown.csproj", "{FF6D69A1-B013-4659-8FF2-2BD6C0026278}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownTests", "MarkdownTests\MarkdownTests.csproj", "{BAB03885-96F8-4806-8222-353293EC8BF0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,11 +35,17 @@ Global
 		{FF6D69A1-B013-4659-8FF2-2BD6C0026278}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF6D69A1-B013-4659-8FF2-2BD6C0026278}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF6D69A1-B013-4659-8FF2-2BD6C0026278}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BAB03885-96F8-4806-8222-353293EC8BF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAB03885-96F8-4806-8222-353293EC8BF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAB03885-96F8-4806-8222-353293EC8BF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAB03885-96F8-4806-8222-353293EC8BF0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {56A810F3-3750-4BA8-A365-FA046394FB15}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
 EndGlobal

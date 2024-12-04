@@ -2,7 +2,7 @@
 
 namespace Markdown;
 
-internal class Md
+public class Md
 {
     private readonly ISpecificationProvider specificationProvider;
     public Md(ISpecificationProvider specificationProvider)
