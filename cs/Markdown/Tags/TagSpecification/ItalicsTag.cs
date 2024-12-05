@@ -16,25 +16,17 @@ public class ItalicsTag : BaseTag
         
         forbiddenSubstrings = list.ToArray();
     }
+    
     public override bool DidConflict(BaseTag tag) => tag is BoldTag;
 
     public override TextFragment? FindNextPairOfTags(string text, int startIndex, BaseTag tagSpecification)
     {
         var pair = base.FindNextPairOfTags(text, startIndex, tagSpecification);
-        if (pair is null) return null;
         
-        var fragment = text[pair.OpeningTag.StartIndex..(pair.ClosingTag.StartIndex + Closing.Old.Length)];
-        var indexBeforeFragment = pair.OpeningTag.StartIndex - 1;
-        var indexAfterFragment = pair.ClosingTag.StartIndex + pair.ClosingTag.Tag.Old.Length;
-        var tagOpensBeforeWord = indexBeforeFragment >= 0 &&
-            (char.IsWhiteSpace(text, indexBeforeFragment) || text[indexBeforeFragment] == '\\') ||
-            pair.OpeningTag.StartIndex == 0;
-        var tagClosesAfterWord = indexAfterFragment < text.Length && char.IsWhiteSpace(text, indexAfterFragment) ||
-                                  indexAfterFragment == text.Length;
-        if (fragment.Split().Length == 1 || tagOpensBeforeWord && tagClosesAfterWord)
-        {
+        if (pair is null)
+            return null;
+        if (CheckLocationOfTagsInText(text, pair))
             return pair;
-        }
         
         return FindNextPairOfTags(text, pair.ClosingTag.StartIndex, tagSpecification);
     }
@@ -46,5 +38,19 @@ public class ItalicsTag : BaseTag
 
         return !forbiddenSubstrings.Any(s => substring.StartsWith(s) || substring.EndsWith(s)) &&
                (tag == Opening && substring[^1] != ' ' || tag == Closing && substring[0] != ' ');
+    }
+
+    private bool CheckLocationOfTagsInText(string text, TextFragment pairOfTags)
+    {
+        var indexBeforeFragment = pairOfTags.OpeningTag.StartIndex - 1;
+        var indexAfterFragment = pairOfTags.ClosingTag.StartIndex + pairOfTags.ClosingTag.Tag.Old.Length;
+        var fragment = text[pairOfTags.OpeningTag.StartIndex..(pairOfTags.ClosingTag.StartIndex + Closing.Old.Length)];
+        var tagOpensBeforeWord = indexBeforeFragment >= 0 &&
+                                 (char.IsWhiteSpace(text, indexBeforeFragment) || text[indexBeforeFragment] == '\\') ||
+                                 pairOfTags.OpeningTag.StartIndex == 0;
+        var tagClosesAfterWord = indexAfterFragment < text.Length && char.IsWhiteSpace(text, indexAfterFragment) ||
+                                 indexAfterFragment == text.Length;
+        
+        return fragment.Split().Length == 1 || tagOpensBeforeWord && tagClosesAfterWord;
     }
 }
