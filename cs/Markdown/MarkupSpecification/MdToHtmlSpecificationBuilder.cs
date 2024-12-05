@@ -12,7 +12,7 @@ public class MdToHtmlSpecificationBuilder : ISpecificationProvider
             new BoldTag(),
             new HeaderTag(),
             new ItalicsTag(),
-            /*new BulletedListTag()*/
+            new BulletedListTag()
         ];
     }
 }

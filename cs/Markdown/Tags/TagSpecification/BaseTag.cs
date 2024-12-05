@@ -2,12 +2,12 @@ namespace Markdown.Tags.TagSpecification;
 
 public abstract class BaseTag(Tag opening, Tag closing)
 {
-    public Tag Opening { get; init; } = opening;
-    public Tag Closing { get; init; } = closing;
+    public Tag Opening { get; } = opening;
+    public Tag Closing { get; } = closing;
     
     public virtual bool DidConflict(BaseTag tag) => false;
     
-    public virtual TextFragment FindNextPairOfTags(string text, int startIndex, BaseTag tagSpecification)
+    public virtual TextFragment? FindNextPairOfTags(string text, int startIndex, BaseTag tagSpecification)
     {
         var opening = FindNextTag(text, startIndex, Opening, tagSpecification);
         if (opening is null) return null;
@@ -22,7 +22,7 @@ public abstract class BaseTag(Tag opening, Tag closing)
         return new TextFragment(opening, closing);
     }
 
-    protected virtual TagReplacementSpecification FindNextTag(string text, int startIndex, Tag tag, BaseTag tagSpecification)
+    protected virtual TagReplacementSpecification? FindNextTag(string text, int startIndex, Tag tag, BaseTag tagSpecification)
     {
         var numberOfEscapeCharacters = 0;
 

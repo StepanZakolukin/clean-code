@@ -5,15 +5,8 @@ using Markdown.Tags.TagSpecification;
 
 namespace Markdown;
 
-public class Md
+public class Md(ISpecificationProvider specificationProvider)
 {
-    private readonly ISpecificationProvider specificationProvider;
-    
-    public Md(ISpecificationProvider specificationProvider)
-    {
-        this.specificationProvider = specificationProvider;
-    }
-    
     public string Render(string markdown)
     {
         var markupSpecification = specificationProvider.GetMarkupSpecification().ToArray();
@@ -39,10 +32,11 @@ public class Md
                 
                 result.Add(fragment.OpeningTag);
                 result.Add(fragment.ClosingTag);
+
+                var nextStartIndex = fragment.ClosingTag.StartIndex + fragment.ClosingTag.Tag.Old.Length;
+                if (nextStartIndex >= text.Length) break;
                 
-                if (fragment.ClosingTag.StartIndex + 1 >= text.Length) break;
-                
-                fragment = tagSpecification.FindNextPairOfTags(text, fragment.ClosingTag.StartIndex + 1, tagSpecification);
+                fragment = tagSpecification.FindNextPairOfTags(text, nextStartIndex, tagSpecification);
             }
         }
 

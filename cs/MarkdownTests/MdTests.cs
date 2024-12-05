@@ -1,7 +1,8 @@
 using FluentAssertions;
+using Markdown;
 using Markdown.MarkupSpecification;
 
-namespace Markdown;
+namespace MarkdownTests;
 
 
 [TestFixture]
@@ -94,9 +95,26 @@ internal class MdTests
     [Test]
     public void Render_HeadingWithDifferentKeyCharacters()
     {
-        var expected = "<h1>Заголовок <strong>с <em>разными</em> символами</strong></h1>";
         var actual = md.Render($"# Заголовок __с _разными_ символами__{Environment.NewLine}");
         
-        actual.Should().Be(expected);
+        actual.Should().Be("<h1>Заголовок <strong>с <em>разными</em> символами</strong></h1>");
+    }
+
+    [Test]
+    public void Render_OneBulletedListItem_WrappedInHtmlTag()
+    {
+        var actual = md.Render($"- Элемент маркированного списка{Environment.NewLine}");
+
+        actual.Should().Be("<ul><li>Элемент маркированного списка</li></ul>");
+    }
+    
+    [Test]
+    public void Render_MultipleBulletedListItems_CombinedIntoCommonULTag()
+    {
+        var actual = md.Render($"- Первый элемент{Environment.NewLine}" + 
+                               $"- Второй элемент{Environment.NewLine}" +
+                               $"- Третий элемент{Environment.NewLine}");
+
+        actual.Should().Be("<ul><li>Первый элемент</li><li>Второй элемент</li><li>Третий элемент</li></ul>");
     }
 }
