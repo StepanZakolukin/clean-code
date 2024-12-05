@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Text;
 using FluentAssertions;
 using Markdown;
 using Markdown.MarkupSpecification;
@@ -8,7 +10,8 @@ namespace MarkdownTests;
 [TestFixture]
 internal class MdTests
 {
-    private Md md; 
+    private Md md;
+    
     [SetUp]
     public void InitializeFild()
     {
@@ -116,5 +119,59 @@ internal class MdTests
                                $"- Третий элемент{Environment.NewLine}");
 
         actual.Should().Be("<ul><li>Первый элемент</li><li>Второй элемент</li><li>Третий элемент</li></ul>");
+    }
+
+    [Test]
+    public void Render_MarkdownText_HtmlText()
+    {
+        var mdText = File.ReadAllText("MarkdownText.txt");
+        var expected = File.ReadAllText("HtmlText.html");
+        
+        var actual = md.Render(mdText);
+        
+        actual.Should().Be(expected);
+    }
+
+    [Test]
+    public void Render_AlgorithmShouldBeLinear()
+    {
+        var repetitionCount = 100;
+        var shortMdText = File.ReadAllText("MarkdownText.txt");
+        var bigMdText = PerformTextConcatenation(shortMdText, 20);
+        Action<string> action = text => { md.Render(text); };
+        
+        var timeForShortText = MeasureDurationInMs(shortMdText, action, repetitionCount);
+        var timeForBigText = MeasureDurationInMs(bigMdText, action, repetitionCount);
+        var timeRatio = timeForBigText / timeForShortText;
+        
+        timeRatio.Should().BeLessThan(1.8 * bigMdText.Length / shortMdText.Length);
+    }
+
+    private string PerformTextConcatenation(string text, int repetitionCount)
+    {
+        var builder = new StringBuilder();
+        
+        for (var i = 0; i < repetitionCount; i++)
+            builder.Append(text);
+        
+        return builder.ToString();
+    }
+
+    private double MeasureDurationInMs(string text, Action<string> action, int repetitionCount)
+    {
+        action(text);
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+
+        var watch = new Stopwatch();
+        watch.Restart();
+
+        for (var i = 0; i < repetitionCount; i++)
+            action(text);
+
+        watch.Stop();
+
+        return watch.Elapsed.TotalMilliseconds / repetitionCount;
     }
 }

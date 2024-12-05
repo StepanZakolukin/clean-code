@@ -3,6 +3,7 @@ namespace Markdown.Tags.TagSpecification;
 public class ItalicsTag : BaseTag
 {
     private readonly string[] forbiddenSubstrings;
+
     public ItalicsTag() : base(new Tag("_", "<em>"), new Tag("_", "</em>"))
     {
         var list = new List<string> { "__" };
@@ -17,7 +18,7 @@ public class ItalicsTag : BaseTag
     }
     public override bool DidConflict(BaseTag tag) => tag is BoldTag;
 
-    public override TextFragment FindNextPairOfTags(string text, int startIndex, BaseTag tagSpecification)
+    public override TextFragment? FindNextPairOfTags(string text, int startIndex, BaseTag tagSpecification)
     {
         var pair = base.FindNextPairOfTags(text, startIndex, tagSpecification);
         if (pair is null) return null;
@@ -25,12 +26,12 @@ public class ItalicsTag : BaseTag
         var fragment = text[pair.OpeningTag.StartIndex..(pair.ClosingTag.StartIndex + Closing.Old.Length)];
         var indexBeforeFragment = pair.OpeningTag.StartIndex - 1;
         var indexAfterFragment = pair.ClosingTag.StartIndex + pair.ClosingTag.Tag.Old.Length;
-        if (fragment.Split().Length == 1 ||
-            (indexBeforeFragment >= 0 && (text[indexBeforeFragment] == ' ' || text[indexBeforeFragment] == '\\') ||
-             pair.OpeningTag.StartIndex == 0) &&
-            (indexAfterFragment < text.Length &&
-             (text[indexAfterFragment] == ' ' || text[indexAfterFragment] == '\\') ||
-             indexAfterFragment == text.Length))
+        var tagOpensBeforeWord = indexBeforeFragment >= 0 &&
+            (char.IsWhiteSpace(text, indexBeforeFragment) || text[indexBeforeFragment] == '\\') ||
+            pair.OpeningTag.StartIndex == 0;
+        var tagClosesAfterWord = indexAfterFragment < text.Length && char.IsWhiteSpace(text, indexAfterFragment) ||
+                                  indexAfterFragment == text.Length;
+        if (fragment.Split().Length == 1 || tagOpensBeforeWord && tagClosesAfterWord)
         {
             return pair;
         }

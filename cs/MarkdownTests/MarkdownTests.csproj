@@ -26,4 +26,13 @@
       <ProjectReference Include="..\Markdown\Markdown.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="HtmlText.html">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="MarkdownText.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
