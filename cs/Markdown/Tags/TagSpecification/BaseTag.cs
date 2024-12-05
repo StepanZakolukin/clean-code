@@ -41,7 +41,7 @@ public abstract class BaseTag(Tag opening, Tag closing)
     }
 
     public virtual string PerformTagFormatting(TagReplacementSpecification replacement,
-        BaseTag previousTag, BaseTag nextTag)
+        BaseTag? previousTag, BaseTag? nextTag)
     {
         return replacement.Tag == Opening ? Opening.New : Closing.New;
     }

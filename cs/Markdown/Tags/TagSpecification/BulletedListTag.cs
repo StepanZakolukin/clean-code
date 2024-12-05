@@ -6,16 +6,8 @@ public class BulletedListTag() : BasicSingleTag(new Tag("- ", "<li>"), new Tag(E
         BaseTag? previousTag, BaseTag? nextTag)
     {
         if (replacement.Tag == Opening)
-        {
-            if (previousTag is BulletedListTag)
-                return replacement.Tag.New;
-            
-            return "<ul>" + replacement.Tag.New;
-        }
+            return previousTag is BulletedListTag ? replacement.Tag.New : "<ul>" + replacement.Tag.New;
 
-        if (nextTag is BulletedListTag)
-            return replacement.Tag.New;
-        
-        return replacement.Tag.New + "</ul>";
+        return nextTag is BulletedListTag ? replacement.Tag.New : replacement.Tag.New + "</ul>";
     }
 }

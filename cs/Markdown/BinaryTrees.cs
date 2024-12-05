@@ -5,63 +5,59 @@ namespace Markdown;
 public class BinaryTree<T> : IEnumerable<T>
     where T : IComparable
 {
-    private TreeNode Root;
+    private TreeNode? root;
+    
     public void Add(T key)
     {
-        if (Equals(Root, null)) { Root = new TreeNode(key, null); return; }
-
-        var currentSubtree = Root;
+        var currentSubtree = root;
+        if (Equals(root, null))
+        {
+            root = new TreeNode(key, null);
+            return;
+        }
 
         while (true)
-        {
-            if (key.CompareTo(currentSubtree.Value) >= 0)
+            if (currentSubtree != null && key.CompareTo(currentSubtree.Value) >= 0)
             {
                 currentSubtree.HeightOfRight++;
-                if (currentSubtree.Right == null) { currentSubtree.Right = new TreeNode(key, currentSubtree); return; }
-                else currentSubtree = currentSubtree.Right;
+                if (currentSubtree.Right == null)
+                {
+                    currentSubtree.Right = new TreeNode(key, currentSubtree);
+                    return;
+                }
+                currentSubtree = currentSubtree.Right;
             }
             else
             {
+                if (currentSubtree == null) continue;
                 currentSubtree.HeightOfLeft++;
-                if (currentSubtree.Left == null) { currentSubtree.Left = new TreeNode(key, currentSubtree); return; }
-                else currentSubtree = currentSubtree.Left;
+                if (currentSubtree.Left == null)
+                {
+                    currentSubtree.Left = new TreeNode(key, currentSubtree);
+                    return;
+                }
+
+                currentSubtree = currentSubtree.Left;
             }
-        }
-    }
-
-    public bool Contains(T key)
-    {
-        var currentSubtree = Root;
-
-        while (!Equals(currentSubtree, null))
-        {
-            if (key.CompareTo(currentSubtree.Value) == 0)
-                return true;
-
-            if (key.CompareTo(currentSubtree.Value) > 0)
-                currentSubtree = currentSubtree.Right;
-            else currentSubtree = currentSubtree.Left;
-        }
-
-        return false;
     }
 
     public T this[int i]
     {
         get
         {
-            if (Root.HeightOfRight + Root.HeightOfLeft < i || i < 0)
+            if (root != null && (root.HeightOfRight + root.HeightOfLeft < i || i < 0))
                 throw new IndexOutOfRangeException();
 
-            var currentSubtree = Root;
+            var currentSubtree = root;
             var index = 0;
 
             while (true)
             {
-                if (currentSubtree.HeightOfLeft + index == i) return currentSubtree.Value;
-                else if (currentSubtree.HeightOfLeft + index > i)
+                if (currentSubtree != null && currentSubtree.HeightOfLeft + index == i)
+                    return currentSubtree.Value;
+                if (currentSubtree != null && currentSubtree.HeightOfLeft + index > i)
                     currentSubtree = currentSubtree.Left;
-                else if (currentSubtree.HeightOfLeft < i)
+                else if (currentSubtree != null && currentSubtree.HeightOfLeft < i)
                 {
                     index += currentSubtree.HeightOfLeft + 1;
                     currentSubtree = currentSubtree.Right;
@@ -72,9 +68,9 @@ public class BinaryTree<T> : IEnumerable<T>
 
     public IEnumerator<T> GetEnumerator()
     {
-        if (Root == null) yield break;
+        if (root == null) yield break;
 
-        foreach (var subtree in Root)
+        foreach (var subtree in root)
             yield return subtree.Value;
     }
 
@@ -83,19 +79,14 @@ public class BinaryTree<T> : IEnumerable<T>
         return GetEnumerator();
     }
 
-    public class TreeNode : IEnumerable<TreeNode>
+    public class TreeNode(T value, TreeNode? ancestor) : IEnumerable<TreeNode>
     {
-        public T Value;
+        public readonly T Value = value;
         public int HeightOfLeft { get; set; }
         public int HeightOfRight { get; set; }
 
-        public TreeNode Left, Right, Ancestor;
-
-        public TreeNode(T value, TreeNode ancestor)
-        {
-            Value = value;
-            Ancestor = ancestor;
-        }
+        public TreeNode? Left, Right;
+        private readonly TreeNode? ancestor = ancestor;
 
         IEnumerator IEnumerable.GetEnumerator()
         {
@@ -111,6 +102,7 @@ public class BinaryTree<T> : IEnumerable<T>
 
             while (true)
             {
+                if (treeNode == null) continue;
                 yield return treeNode;
 
                 if (treeNode.Right != null)
@@ -121,7 +113,7 @@ public class BinaryTree<T> : IEnumerable<T>
 
                 if (treeNode == this) break;
 
-                treeNode = treeNode.Ancestor;
+                treeNode = treeNode.ancestor;
             }
         }
     }

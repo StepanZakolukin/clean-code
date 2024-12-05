@@ -2,4 +2,4 @@ using Markdown.Tags;
 
 namespace Markdown;
 
-public record class TextFragment(TagReplacementSpecification OpeningTag, TagReplacementSpecification ClosingTag);
+public record TextFragment(TagReplacementSpecification OpeningTag, TagReplacementSpecification ClosingTag);

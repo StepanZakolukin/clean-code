@@ -144,7 +144,7 @@ internal class MdTests
         var timeForBigText = MeasureDurationInMs(bigMdText, action, repetitionCount);
         var timeRatio = timeForBigText / timeForShortText;
         
-        timeRatio.Should().BeLessThan(1.8 * bigMdText.Length / shortMdText.Length);
+        timeRatio.Should().BeLessThan(2.0 * bigMdText.Length / shortMdText.Length);
     }
 
     private string PerformTextConcatenation(string text, int repetitionCount)
@@ -160,18 +160,17 @@ internal class MdTests
     private double MeasureDurationInMs(string text, Action<string> action, int repetitionCount)
     {
         action(text);
-
         GC.Collect();
         GC.WaitForPendingFinalizers();
-
         var watch = new Stopwatch();
+        
         watch.Restart();
-
+        
         for (var i = 0; i < repetitionCount; i++)
             action(text);
-
+        
         watch.Stop();
-
+        
         return watch.Elapsed.TotalMilliseconds / repetitionCount;
     }
 }

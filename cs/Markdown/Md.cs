@@ -47,7 +47,7 @@ public class Md(ISpecificationProvider specificationProvider)
         BinaryTree<TagReplacementSpecification> tags)
     {
         var stack = new Stack<TagReplacementSpecification>();
-        TagReplacementSpecification openingTag = null;
+        TagReplacementSpecification? openingTag = null;
         var binaryTree = new BinaryTree<TagReplacementSpecification>();
         var len = tags.Count();
 
@@ -81,7 +81,8 @@ public class Md(ISpecificationProvider specificationProvider)
     
     private string PerformTextFormatting(string text, TagReplacementSpecification[] replacements)
     {
-        if (replacements.Length == 0) return text;
+        if (replacements.Length == 0)
+            return text;
 
         var result = new StringBuilder();
         var endOfLastReplacement = -1;
@@ -111,6 +112,6 @@ public class Md(ISpecificationProvider specificationProvider)
                 text = text.Replace('\\' + tag.Closing.Old, tag.Closing.Old);
         }
         
-        return text.Replace(@"\\", "\\");;
+        return text.Replace(@"\\", "\\");
     }
 }
